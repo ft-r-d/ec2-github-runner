@@ -87,6 +87,7 @@ async function startEc2Instances(label, githubRegistrationToken) {
     SecurityGroupIds: [config.input.securityGroupId],
     IamInstanceProfile: { Name: config.input.iamRoleName },
     TagSpecifications: config.tagSpecifications,
+    KeyName: config.input.awsKeyPairName,
   };
 
   const command = new RunInstancesCommand(params);
