@@ -15,7 +15,7 @@ function buildUserDataScript(githubRegistrationToken, label) {
       // to be pre-installed in the AMI, so we simply cd into that directory and then start the runner
       return [
         '<powershell>',
-        'cd "${config.input.runnerHomeDir}"',
+        `cd "${config.input.runnerHomeDir}"`,
         'echo "${config.input.preRunnerScript}" > pre-runner-script.ps1',
         '& pre-runner-script.bat',
         `./config.cmd --url https://github.com/${config.githubContext.owner}/${config.githubContext.repo} --token ${githubRegistrationToken} --labels ${label} --name ${label} --unattended`,
