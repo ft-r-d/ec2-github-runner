@@ -2,7 +2,7 @@ const { EC2Client, RunInstancesCommand, TerminateInstancesCommand, waitUntilInst
 const core = require('@actions/core');
 const config = require('./config');
 
-const runnerVersion = '2.309.0';
+const runnerVersion = '2.319.1';
 
 // User data scripts are run as the root user
 function buildUserDataScript(githubRegistrationToken, label) {
