@@ -1,12 +1,12 @@
-const { EC2Client, RunInstancesCommand, TerminateInstancesCommand, waitUntilInstanceRunning } = require("@aws-sdk/client-ec2");
+const { EC2Client, RunInstancesCommand, TerminateInstancesCommand, waitUntilInstanceRunning } = require('@aws-sdk/client-ec2');
 const core = require('@actions/core');
 const config = require('./config');
 
-const runnerVersion = '2.309.0'
+const runnerVersion = '2.309.0';
 
 // User data scripts are run as the root user
 function buildUserDataScript(githubRegistrationToken, label) {
-  core.info(`Building data script for ${config.input.ec2Os}`)
+  core.info(`Building data script for ${config.input.ec2Os}`);
 
   if (config.input.ec2Os === 'windows') {
     // Name the instance the same as the label to avoid machine name conflicts in GitHub.
@@ -22,7 +22,7 @@ function buildUserDataScript(githubRegistrationToken, label) {
         './run.cmd',
         '</powershell>',
         '<persist>false</persist>',
-      ]
+      ];
     } else {
       return [
         '<powershell>',
@@ -35,38 +35,38 @@ function buildUserDataScript(githubRegistrationToken, label) {
         './run.cmd',
         '</powershell>',
         '<persist>false</persist>',
-      ]
+      ];
     }
   } else if (config.input.ec2Os === 'linux') {
-  if (config.input.runnerHomeDir) {
-    // If runner home directory is specified, we expect the actions-runner software (and dependencies)
-    // to be pre-installed in the AMI, so we simply cd into that directory and then start the runner
-    return [
-      '#!/bin/bash',
-      `cd "${config.input.runnerHomeDir}"`,
-      `echo "${config.input.preRunnerScript}" > pre-runner-script.sh`,
-      'source pre-runner-script.sh',
-      'export RUNNER_ALLOW_RUNASROOT=1',
-      `./config.sh --url https://github.com/${config.githubContext.owner}/${config.githubContext.repo} --token ${githubRegistrationToken} --labels ${label}`,
-      './run.sh',
-    ];
-  } else {
-    return [
-      '#!/bin/bash',
-      'mkdir actions-runner && cd actions-runner',
-      `echo "${config.input.preRunnerScript}" > pre-runner-script.sh`,
-      'source pre-runner-script.sh',
-      'case $(uname -m) in aarch64) ARCH="arm64" ;; amd64|x86_64) ARCH="x64" ;; esac && export RUNNER_ARCH=${ARCH}',
-      'curl -O -L https://github.com/actions/runner/releases/download/v2.313.0/actions-runner-linux-${RUNNER_ARCH}-2.313.0.tar.gz',
-      'tar xzf ./actions-runner-linux-${RUNNER_ARCH}-2.313.0.tar.gz',
-      'export RUNNER_ALLOW_RUNASROOT=1',
-      `./config.sh --url https://github.com/${config.githubContext.owner}/${config.githubContext.repo} --token ${githubRegistrationToken} --labels ${label}`,
-      './run.sh',
-    ];
-  }
+    if (config.input.runnerHomeDir) {
+      // If runner home directory is specified, we expect the actions-runner software (and dependencies)
+      // to be pre-installed in the AMI, so we simply cd into that directory and then start the runner
+      return [
+        '#!/bin/bash',
+        `cd "${config.input.runnerHomeDir}"`,
+        `echo "${config.input.preRunnerScript}" > pre-runner-script.sh`,
+        'source pre-runner-script.sh',
+        'export RUNNER_ALLOW_RUNASROOT=1',
+        `./config.sh --url https://github.com/${config.githubContext.owner}/${config.githubContext.repo} --token ${githubRegistrationToken} --labels ${label}`,
+        './run.sh',
+      ];
+    } else {
+      return [
+        '#!/bin/bash',
+        'mkdir actions-runner && cd actions-runner',
+        `echo "${config.input.preRunnerScript}" > pre-runner-script.sh`,
+        'source pre-runner-script.sh',
+        'case $(uname -m) in aarch64) ARCH="arm64" ;; amd64|x86_64) ARCH="x64" ;; esac && export RUNNER_ARCH=${ARCH}',
+        'curl -O -L https://github.com/actions/runner/releases/download/v2.313.0/actions-runner-linux-${RUNNER_ARCH}-2.313.0.tar.gz',
+        'tar xzf ./actions-runner-linux-${RUNNER_ARCH}-2.313.0.tar.gz',
+        'export RUNNER_ALLOW_RUNASROOT=1',
+        `./config.sh --url https://github.com/${config.githubContext.owner}/${config.githubContext.repo} --token ${githubRegistrationToken} --labels ${label}`,
+        './run.sh',
+      ];
+    }
   } else {
     core.error('Not supported ec2-os.');
-    return []
+    return [];
   }
 }
 
@@ -93,7 +93,7 @@ async function startEc2Instances(label, githubRegistrationToken) {
 
   try {
     const result = await client.send(command);
-    const ec2InstanceIds = result.Instances.map(instance => instance.InstanceId);
+    const ec2InstanceIds = result.Instances.map((instance) => instance.InstanceId);
     core.info(`AWS EC2 instance ${ec2InstanceIds} is started`);
     return ec2InstanceIds;
   } catch (error) {
@@ -114,7 +114,6 @@ async function terminateEc2Instances() {
   try {
     await client.send(command);
     core.info(`AWS EC2 instance ${config.input.ec2InstanceIds} is terminated`);
-
   } catch (error) {
     core.error(`AWS EC2 instance ${config.input.ec2InstanceIds} termination error`);
     throw error;
@@ -129,7 +128,7 @@ async function waitForInstancesRunning(ec2InstanceIds) {
   };
 
   try {
-    await waitUntilInstanceRunning({client, maxWaitTime: 30, minDelay: 3}, params);
+    await waitUntilInstanceRunning({ client, maxWaitTime: 30, minDelay: 3 }, params);
     core.info(`AWS EC2 instance ${ec2InstanceIds} is up and running`);
   } catch (error) {
     core.error(`AWS EC2 instance ${ec2InstanceIds} initialization error`);
